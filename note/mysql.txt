@@ -1,0 +1,13 @@
+1、SQL基础
+#创建数据库
+create databases dbname;
+#删除数据库
+drop databases dbname;
+#创建表
+create table tablename(
+...
+);
+#删除表
+drop table tablename;
+#修改表
+alter table

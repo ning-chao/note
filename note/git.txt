@@ -1,0 +1,37 @@
+1、下载安装配置
+直接yum install -y git或者下载源码编译安装https://github.com/git/git/releases
+安装完成后执行：
+$ git config --global user.name "Your Name"
+$ git config --global user.email "email@example.com"
+#找个合适的地方，建一个空的目录
+$ mkdir learngit
+$ cd learngit
+$ pwd
+/Users/michael/learngit
+2、创建版本库：通过git init命令把这个目录初始化为git可以管理的仓库
+git init
+Initialized empty Git repository in /Users/michael/learngit/.git/
+ls -a
+3、提交文件
+vim readme.txt	#编写一个文件，此时文件在工作区
+git add readme.txt	#把文件添加到暂存区
+git commit -m "wrote a readme file"	#吧所有暂存区的文件提交到主分支
+#修改readme.txt，在运行git status，可以看到当前状态，提示被修改过了
+git diff readme.txt 可以查看被修改的地方
+4、版本管理
+#HEAD指向的版本就是当前版本
+git reset --hard commit_id	#上一次版本也可以用git reset --hard HEAD^
+#用git log可以查看提交历史，以便确定要回退到哪个版本。
+git log或者精简版显示git log --pretty=online
+#要重返未来，用git reflog查看命令历史，以便确定要回到未来的哪个版本。
+git reset --hard commit_id
+#连续修改两次：
+第一次修改 -> git add -> 第二次修改 -> git add -> git commit
+#当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改
+git checkout -- filename
+#当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改
+分两步：第一步用命令git reset HEAD <file>，就回到了场景1，第二步按场景1操作。
+#查看当前文件状态
+git status
+#查看工作区和版本库最新版本的区别
+git diff HEAD --filename

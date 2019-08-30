@@ -1,0 +1,41 @@
+1、查找特定的字符串
+#在regular_express.txt中找到字符串the
+grep -n 'the' regulat_express.txt
+#在regular_express.txt中找到没有字符串the的行
+grep -vn 'the' regulat_express.txt
+#在regular_express.txt中找到字符串the，不论大小写
+grep -in 'the' regulat_express.txt
+2、利用中括号[]查找集合字符串
+#查找以非小写字母开头含有on的行
+grep -n '[^[:lower:]]o' regular_express.txt
+#查找有数字的行
+grep -n '[0-9]' regular_express.txt
+3、行首行尾符^和$
+符号^在[]内表示反向选择，在[]外表示定位在行首的意思
+#查找以The开头的行
+grep -n '^The' regular_express.txt
+#查找开头是小写字母的行
+grep -n '^[a-z]' regular_express.txt
+#查找行尾以点.结尾的行
+grep -n '\.$' regular_express.txt
+#查找空白行
+grep -n '^$' regular_express.txt
+#去掉文件内的空白行和以#开头的行
+grep -v '^$' /etc/rsyslog.conf | grep -v '^#'
+4、任意一个字符点.与重复字符星*
+.*代表零个或多个任意字符
+#查找以b开头，以你*结尾，中间任意多的字符
+grep -n 'b.*n' regular_express.txt
+5、限定连续的RE字符范围{}
+#查找有两个字母o的字符串
+grep -n 'o\{2\}' regular_express.txt
+6、sed
+#将/etc/passwd的内容列出并打印行号，同事将2~5行删除
+nl /etc/passwd | sed '2,5d'
+#在第二行后面追加123456
+nl /etc/passwd | sed '2a 123456'
+#在第二行前面追加123456
+nl /etc/passwd | sed '2i 123456'
+#将/etc/passwd的2~5行内容替换成为222555
+nc /etc/passwd |sed '2,5c 222555'
+#

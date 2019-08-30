@@ -1,0 +1,226 @@
+1、安装Redis
+下载，解压，编译Redis:
+$ wget http://download.redis.io/releases/redis-5.0.5.tar.gz
+$ tar xzf redis-5.0.5.tar.gz
+$ cd redis-5.0.5
+$ make
+编译完成，而今在文件在src目录。运行Redis: 
+$ src/redis-server
+配合使用Redis自带的客户端命令：
+$ src/redis-cli
+redis> set foo bar
+OK
+redis> get foo
+"bar"
+2、配置Redis
+通过脚本启动：
+mkdir /etc/redis;mkdir /var/redis/6379
+cp sentinel.conf /etc/redis/
+cd /etc/redis/
+mv /etc/redis/sentinel.conf /etc/redis/6379.conf
+vim /etc/redis/6379.conf
+...
+daemonize yes
+pidfile /var/run/redis_6379.pid
+port 6379
+dir /var/redis/6379
+...
+3、启动、关闭Redis
+启动：/etc.init.d/redis_6379 start
+关闭：redis-cli SHUTDOWN
+4、连接redis
+redis-cli -h 127.0.0.1 -p 6379
+5、选择数据库
+select num
+redis默认16个数据库，所以num为：0-15
+#获取键名列表
+keys *或者keys 键名等
+#判断一个键是否存在
+exists key	#返回值为1，则表明存在；0则不存在
+#删除键，可以删除一个或多个，返回值是删除的个数
+del key
+#删除所有以"user:"开头的键
+redis-cli keys "user:*" | xargs redis-cli del或者redis-cli del 'redis-cli keys "user:*"'
+#获取一个键值的数据类型
+type key
+#向指定的列表类型中增加一个元素，如果键不存在就创建它
+lpush foo 1	#向foo中添加一个元素1
+6、字符串类型
+#赋值与取值
+赋值：set key value
+取值：get key
+#递增，递减数字
+incr key	#每次递增1
+incrby key increment	#增加指定数值increment
+decr key	#每次递减1
+decrby key decrement	#减去指定数值decrement
+#向尾部追加字符串
+append key value	#返回值是追加后字符串的总长度
+#获取字符串长度
+strlen key	#返回值是字符串的长度，键不存在返回0
+#同时获取、设置多个键值
+mget key
+mset key1 value1 key2 value2 key3 value3
+#位操作
+getbit key offset	#获取一个字符串键值的指定位置的二进制值（0或1）
+setbit key offset value	#设置一个字符串键值的指定位置的二进制值（0或1）
+bitcount key [start] [end]	#获取字符串键中值是1的二进制位个数
+bitop operation destkey key	#对多个字符串进行位运算,operation可以为：and,or,xor,not；destkey自定义参数
+7、散列类型
+#赋值与取值
+hset key field value	#设置不存在的字段值返回值1，更新已存在的字段值返回值0
+hget key field	#获取字段值
+hmset key field value [field value ...]
+hmget key field [field ...]
+hgetall key	#获取key的所有值
+#判断一个字段是否存在
+hexists key field
+#当字段不存在时赋值
+hsetnx key field value	#和hset类似，区别在于若字段存在，hsetnx不做任何操作，返回值0
+#增加数字
+hincrby key field increment	#field值增加指定数值，返回增加后的值
+#删除字段
+hdel key field [field ...]	#删除一个或多个字段
+#只获取字段名或字段值
+hkeys key
+hvals key
+#获取字段数量
+hlen key
+8、列表类型
+#向列表两端增加元素
+lpush key value value ...	#向列表左边增加一个或多个元素，返回值是增加后的长度
+rpush key value value ...	#向列表右边增加一个或多个元素，返回值是增加后的长度
+#从列表两端弹出元素
+lpop key	#从左边移除一个元素
+rpop key	#从右边移除一个元素
+#获取列表中元素的个数
+llen key
+#获得列表片段
+lrange key start stop	#返回从start到stop之间的元素，起始索引是0
+lrange key -2 -1	#lrange支持负数，右边第一个为-1，右边第二个为-2
+lrange key 0 -1		#获取所有元素
+#删除列表中的指定值
+lrem key count value	#删除count个value元素
+若count>0,lrem从左边开始删除；若count<0，lrem从右开始删除；若count=0，删除所有指定元素
+#获得/设置指定索引的元素值
+lindex key index
+lset key index value
+#只保留列表指定片段,删除指定索引之外的所有元素
+ltrim key strat stop
+#向列表中插入元素
+linsert key before|after pivot value	#pivot为要插入的元素的参照元素
+#将一个元素从一个列表转到另一个列表
+rpoplpush source destination	#相当于将key1列表中的最右边元素弹出，移动到key2列表的最左边
+9、集合类型
+#增加/删除元素
+sadd key member [member ...]
+srem key menber [menber ...]
+#查看集合所有元素
+smembers key
+#判断元素是否在集合中
+sismember key members
+#集合间运算
+以下三者均可以传入多个集合
+sdiff key [key ...]	#集合A与集合B的差集
+sinter key [key ...]	#集合A与集合B的交集
+sunion key [key ...]	#集合A与集合B的并集
+#获取集合中的元素个数
+scard key
+#进行集合运算并将结果存储
+sdiffstore destination key [key ...]
+sinterstore destination key [key ...]
+sunionstore destination key [key ...]
+#随机获取集合中的元素
+srandmember key [count]
+#从集合中弹出一个元素
+spop key	#由于集合元素是无序存储的，座椅spop也是随机删除的
+10、有序集合类型
+#增加元素
+zadd key score member [score member ...]	#返回值是新增元素个数，不包括已存在的
+#查询元素分数
+zscore key member
+# 查询排名在某个范围的元素列表
+zrange key start stop [withscores]	#想要同事获得元素和分数，加上withscores
+zrevrange key start stop [withscores]	#与zrange不同之处，在于zrevrange是按照元素分数来排序的
+#获得指定分数范围的元素
+zrangebyscore key min max [withscores] [limit offset count]	#limit 2 3代表从获取符合条件的第三个人开始的3个人
+zrevrangebyscore key max min [withscores] [limit offset count]	#按照分数从大到小排列
+zrangebyscore board 80 (100	#分数大于等于80，小于100
+zrangebyscore board (80 +inf	#分数大于80，到正无穷大；-inf代表负无穷
+#增加某个元素的分数
+zincrby key increment member	#返回值是增加后的分数，如果指定元素分数不存在，建立此元素并赋值0
+#获得集合中元素数量
+zcard key
+#获得指定分数范围内的元素个数
+zcount key min max
+#删除一个或多个元素
+zrem key member [member ...]
+#按照排名范围删除
+zremrangebyrank key start stop
+#按照分数范围删除元素
+zremrangebyscore ky min max
+#获得元素排名
+zrank key member	#按照分数从小到大排序
+zrevrank key member	#按照分数从大到小排序
+#计算有序集合的交集
+zinterstore destination numkeys key [key ...] [weights weight [weight ...]] [aggregate sum|min|max]
+12、事务
+事务开始：multi 
+执行命令：...
+事务结束：exec
+#利用watch可以监控事务执行键值是否被修改，若被修改则事务执行失败
+watch key
+#键值生存时间
+expire key seconds
+#查看键值蒸鱼生存时间
+ttl key
+#取消键值生存时间，变为永久的
+persist key
+#排序(集合，列表，有序集合类型)
+sort key
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

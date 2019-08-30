@@ -1,0 +1,77 @@
+1、安装nginx
+#GCC编译器
+yum install -y gcc
+yum install -y gcc-c++
+#PCRE库
+yum install -y pcre pcre-devel
+#zlib库
+yum install -y zlib zlib-devel
+#OpenSSL开发库
+yum install -y openssl openssl-devel
+2、Linux内核参数优化
+vim /etc/sysctl.conf
+...
+配置完执行sysctl -p，值上述修改生效
+3、下载nginx源码包
+wget http://nginx.org/download/nginx-1.14.2.tar.gz
+解压
+tar -zxvf nginx-1.14.2.tar.gz
+cd nginx-1.14.2
+编译安装
+./configure
+make make install
+4、Nginx的命令行控制
+#默认启动方式
+/usr/local/nginx/sbin/nginx	#默认读取/usr/local/nginx/conf/nginx.conf
+#另行指定配置文件的启动方式
+/usr/local/nginx/sbin/nginx -c /tmp/nginx.conf	#这时会读取-c参数后指定的nginx.conf配置文件来启动nginx
+#另行指定安装目录的启动方式
+/usr/local/nginx/sbin/nginx -p /usr/local/nginx/	#-p参数指定nginx的安装目录
+#另行指定全局配置项的启动方式
+/usr/local/nginx/sbin/nginx -g "pid /varnginx/test.pid"	#-g参数临时指定一些全局配置项
+#测试配置信息是否有误
+/usr/local/nginx/sbin/nginx -t	#在不启动nginx的情况下测试配置文件是否有误
+#在配置阶段不输出信息
+/usr/local/nginx/sbin/nginx -t -q	#-q参数使error界别以下的信息不输出到屏幕
+#显示版本信息
+/usr/local/nginx/sbin/nginx -v
+#显示编译阶段的参数
+/usr/local/nginx/sbin/nginx -V	#显示gcc版本，操作系统版本，执行的configure参数等
+#快速停止服务
+/usr/local/nginx/sbin/nginx -s stop
+或者：kill -s SIGTERM 进程号
+kill -s SIGINT 进程号
+#优雅停止服务：先关闭监听端口，停止接收新的连接，然后处理完当前连接，最后退出进程
+/usr/local/nginx/sbin/nginx -s quit
+或者kill -s SIGQUIT 进程号
+    kill -s SIGWINCH 进程号
+#使运行中的Nginx重读配置项并生效
+/usr/local/nginx/sbin/nginx -s reload
+或者kill -s SIGHUP 进程号
+#日志文件回滚
+/usr/local/nginx/sbin/nginx -s reopen
+或者kill -s SIGUSER1 进程号
+#平滑升级Nginx
+1）通知旧版本准备升级。kill -s SIGUSER2 进程号
+2）启动新版本的Nginx
+3）以优雅的方式关闭旧版本Nginx
+5、
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

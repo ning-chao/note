@@ -1,0 +1,112 @@
+1、type：查询命令是否为Bash shell内置命令
+查询ls的命令类型：type -t ls
+输出结果：
+file表示外部命令
+alias表示别名命令
+builtin表示bash内置命令
+2、env、set查看常见环境变量及说明：
+直接输入env或set
+3、read：读取来自键盘输入的变量
+read [-pt] variable
+-p: 后面可以接提示字符
+-t：指定等待秒数
+#提示使用者在30s内输入自己的名字，病将name作为变量内容
+read -p "Please keyin your name: " -t 30 name
+4、declare、typeset生命变量类型
+declare [-aixr] variable
+-a：定义数组类型
+-i：定义整数类型
+-x：将后面的variable变成环境变量
+-r：将变量定义为readonly类型，不可修改也不能uset
+#求和计算
+declare -i sum=1+2+3
+echo $sum
+6
+#将sum变成环境变量
+declare -x sum
+5、ulimit限制用户使用系统资源
+#显示当前身份的所有限制数据数值
+ulinit -a
+#限制使用者只能建立10Mb一下的文件,若要接触限制就注销再次登录
+ulimit -f 10240
+6、alias设置别名
+#查看当前系统有哪些别名
+直接输入alias
+#设置别名
+alias lm='la -al'
+#取消别名设置
+unlias lm
+7、history查看历史命令
+#列出最近的3条历史命令
+history 3
+8、数据流重定向
+#将错误的数据丢弃，将正确的数据在屏幕上显示
+find /home 0name .bashrc 2> /dev/null
+#将正确与错误的数据写入到一个文件中
+find /home -name .bashrc > list 2>&1或者find /home -name .bashrc &> list
+#利用cat创建文件
+cat > test.txt
+输入文件内容
+Ctrl+D退出
+9、cut：将一行中的信息进行拆解，取出部分我们想要的
+cut -d '分隔字符' -f fileds
+-d：后接以什么字符分割，与-f一起使用
+-f：后接数字，取出第几段的意思
+-c：以字符（characters）的单位取出固定区间
+#将PATH变量取出，找出第三与第五个路径
+echo $PATH | cut -d ':' -f 3,5
+#取出每一行第12个字符之后的所有字符
+export | cut -c 12-
+#取出每一行第12到第20个字符
+export | cut -c 12-20
+10、grep 一行中若有我们想要的信息，就讲整行取出来
+#将last中，有root出现的那一行显示出来
+last | grep 'root'
+#将last中，没有有root出现的显示出来
+last | grep -v 'root'
+#将last中，有root出现的那一行显示出来,并且只取第一栏
+last | grep 'root' | cut -d ' ' -f 1
+11、sort 可以以不同的形式排列
+#将/etc/passwd下账号进行排序
+cat /etc/passwd | sort
+#将/etc/passwd内容是以“:”分开的，把账号以第三列进行排序
+cat /etc/passwd | sort -t ':' -k 3
+12、uniq 去除重复的行
+uniq [-ic]
+-i:忽略大小写
+-c:进行计数
+#使用last讲账号列出，仅取账号一栏并排序，显示登陆次数
+last | cut -d ' ' -f 1 | sort | uniq -c
+13、wc统计文件字符数，行数
+wc [-lwm]
+-l:仅列出行
+-w:仅列出多少字（英文字母）
+-m:列出有多少字符
+#统计/etc/passwd中有多少字，行，字符数
+cat /etc/passwd | wc
+14、tee：双向重定向
+tee -a file
+-a:以累加的方式将数据追加到file中
+#将last内容输出到last.txt中，并用cut处理只显示账号
+last | tee last.txt | cut -d ' ' -f 1
+15、tr：可以删除或替换一段信息中的文字
+tr [-ds] set
+-d:删除信息中的set字符
+-s:替换掉重复的字符
+#将last输出的信息中，所有的小写变大写
+last | tr '[a-z]' '[A-Z]'
+#将/etc/passwd的输出信息中，将冒号删除
+cat /etc/passwd | tr -d ':'
+#echo "hellooooooooooooo" | tr -s 'o'
+hello
+16、join将两个文件中相同的数据那一行，整合成一行
+#将/etc/passwd和/etc/shadow有相同的数据整合成一行
+join -t ':' /etc/passwd /etc/shadow | head -n 3
+17、xargs：参数替代
+#将所有的/etc/passwd内的账号以id查看，但查到mysql就结束命令
+cut -d ':' -f 1 /etc/passwd | xargs -e'mysql -n 1 id
+#找出/usr/sbin下面具有特殊权限的文件名，并使用ls -l 列出详细属性
+find /usr/sbin -perm /7000 | xargs ls -l
+
+
+
