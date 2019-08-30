@@ -35,3 +35,124 @@ git checkout -- filename
 git status
 #查看工作区和版本库最新版本的区别
 git diff HEAD --filename
+#从版本库删除文件
+git rm filename	#删除文件
+git commit -m "备注"	#提交删除
+#如果删错了文件，可以从版本库回复；从来没有被添加到版本库就被删除的文件，是无法恢复的！ 
+git checkout -- filename	#恢复到最新版本
+5、远程仓库
+#添加远程仓库
+git remote add origin https://github.com/ning-chao/note.git	#远程仓库origin名字可以自定义
+#推送本地内容到远程仓库
+git push -u origin master
+#从远程库克隆
+git clone https://github.com/ning-chao/note.git
+6、分支管理
+#创建分支dev
+git branch dev	#dev为自定义分支名
+#查看分支
+git branch
+#切换分支
+git checkout dev 或者 git switch dev
+#创建加切换分支
+gti checkout -b dev 或者 git switch -c dev
+#合并某分支到当前分支
+git merge dev
+#删除分支
+git branch -d dev
+#合并分支时，加上--no-ff参数就可以用普通模式合并，合并后的历史有分支，能看出来曾经做过合并，而fast forward合并就看不出来曾经做过合并。
+git merge --no-ff -m "merge with no-ff" dev
+#暂存当前工作
+git stash
+#恢复暂存文件
+git stash pop 
+#在master分支上修复的bug，想要合并到当前dev分支
+git cherry-pick <commit_id>	#提交到master修复bug的id
+#丢弃一个没有被合并过的分支
+git branch -D <name>	#强行删除
+7、标签管理
+#新建标签
+gti tag tagname #默认为HEAD，也可以指定commit_id
+#指定标签信息
+git tag -a tagname -m "balabala"
+#查看所有标签
+git tag
+#删除标签
+git tag -d tagname
+#推送一个本地标签
+git push origin <tagname>
+#推送全部未推送过的本地标签
+git push origin --tags
+#删除一个远程标签
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
