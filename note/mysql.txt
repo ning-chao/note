@@ -1,13 +1,149 @@
 1、SQL基础
+DDL
+1）创建数据库
+#连接MySQL
+mysql -uusername -ppassword
+#查看所有数据库
+show databases;
 #创建数据库
 create databases dbname;
+#选择数据库
+use dbname;
+#查看已选数据库中的所有表
+show tables;
+2）删除数据库
 #删除数据库
 drop databases dbname;
-#创建表
+3）创建表
 create table tablename(
+column_name column_type constraints
 ...
 );
-#删除表
+#查看表定义
+desc tablename;
+4）删除表
 drop table tablename;
-#修改表
-alter table
+5）修改表
+#修改表类型
+alter table tablename modify column_name new_column_type;
+#修改emp表的ename字段，将varchar(10)改为varchar(20)
+alter table emp modify ename varchar(20
+#增加表字段
+alter table tablename add column column_name column_type;
+#在emp表中添加age字段，类型为int(3)
+alter table emp add age column int(3);
+#删除表字段
+alter table tablename drop column column_name;
+#将age字段删除
+alter table drop column age;
+#字段改名
+alter table tablename change column_name new_column_name new_column_type;
+#将age改为age1，同事修改类型为int(4)
+alter table emp change age age1 int(4);
+#修改字段排列顺序
+#新增表字段bieth date 加在 ename之后
+alter table emp add birth date after ename;
+#修改age字段，将他放在最前面
+alter table emp modify age int(3) first;
+6）更改表名
+alter table tablename rename new_tablename;
+#将emp改名为emp1
+alter table emp rename emp1;
+
+DML
+1)插入记录
+insert into tablename(field1,field2,...) values(value1,value2,...);
+2)更新记录
+update tablename set field1=value1,field2=value2,...,fieldn=valuen where condition;	#mysql中可以同时更新多个表
+3）删除记录
+delete drom tablename where condition;
+4）查询记录
+#查询所有记录
+select * from tablename;	
+#查询个别字段
+select column_nem1,column_name2 from tablename;
+@查询不重复记录，用distinct
+select distinct ename from emp;	#查询姓名不重复的员工
+@条件查询
+select * from emp where deptno=1;	#查询所有deptno为1的记录
+@排序和限制
+select * from emp order by sal;	#把emp表中记录按照工资由低到高排列显示
+select * from emp order by deptno,sal desc;	#对于deptno相同的记录，按照sal由高到低排列
+#只显示排序后的前三条
+select * from emp order by sal limit 3;
+#emp表按照sal排序后从第二条开始的3条记录
+select * from emp order by sal limit 1,3;	#order by和limit经常一起配合做分页显示
+@聚合
+where-->group by-->having
+#通过emp表查询公司总人数
+select count(1) from emp;
+#统计各部门人数
+select deptno,count(1) from emp group by deptno;
+#既要统计各部门人数，又要统计总人数
+select deptno,count(1) from emp group by deptno with rollup;	#rollup汇总
+#统计人数大于1的部门
+select deptno,count(1) from emp group by deptno having count(1)>1;
+#统计公司所有员工的薪水总额，最高和最低薪水
+select sum(sal),max(sal),min(sal) from emp;
+@表连接
+内连接：where、join on、innner join on
+外连接：left join、right join、full join
+@子查询
+关键字：in、not in、=、!=、exists、not exists
+@记录联合
+union和union all；区别在于union可去重
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
