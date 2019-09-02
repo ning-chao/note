@@ -87,15 +87,72 @@ select deptno,count(1) from emp group by deptno having count(1)>1;
 select sum(sal),max(sal),min(sal) from emp;
 @表连接
 内连接：where、join on、innner join on
+#查询所有雇员的名字及所在部门，因为雇员表和部门表分别放在enp表和dept表中，因此要用表连接
+select ename.deptname from emp,dept where emp.deptno=dept.deptno;
 外连接：left join、right join、full join
 @子查询
 关键字：in、not in、=、!=、exists、not exists
 @记录联合
+即将两个表查到的结果合并到一列显示
 union和union all；区别在于union可去重
+select deptno from emp union select deptno from dept;
+DCL语句
+#创建一个数据库用户，具有对sakila数据库具有素有表的SELECT/INSERT权限
+grant select/insert on sakila.* to 'z1'@'localhost' identified by '123';
+#收回z1的INSERT权限，只有SELECT权限
+revoke insert on sakila.* from 'z1'@'localhost';
 
+2、MySQL支持的数据类型
+@数值类型
+tinyint、smallint、mediumint、int、bigint、float、double、dce(m,d)、bit(m)
+#UNSIGNED(无符号类型)：取值范围从0开始，范围是原来正数的2倍。如tinyint有符号范围：-127~127，无符号范围是0~255
+#AUTO_INCREMENT：从1开始每行自动加1，使用AUTO_INCREMENT的列，赢定义为NOT NULL，并定义为PRIMARY KEY或者UNIQUE键
+@日期时间类型
+date：0000-00-00 00:00:00
+datetime：0000-00-00
+timestamp：000000000000000000
+time：00:00:
+year：0000
+@char和varchar类型
+这两者用来保存较短的字符串
+@enum类型
+@set类型
+#enum只能选取一个元素，set可以选取多个
 
+3、运算符
+@算数运算符
+@比较运算符
+@逻辑运算符
+@位运算符
 
-
+4、常用函数
+@字符串函数
+CONCAT('a','b','c')
+LOWER(str)
+UPPER(str)
+@数值函数
+ABS(x)	#返回绝对值
+CEIL(x)	#返回大于x的最小整数
+FLOOR(x)	#返回小于x的最小整数
+RAND()	#返回0~1的随机数
+ROUND(x,y)	#返回x四舍五入有y位小数的值
+TRUNCATE(x,y)	#返回x截断y位小数的结果
+@日期和时间函数
+CURDATE()	#返回当前日期
+CURTIME()	#返回当前日期
+NOW()		#返回当前日期和时间
+UNIX_TIMESTANP()	#返回当前日期的Unix时间戳
+WEEk(date)	#返回date日期为一年的第几周	
+@流程函数
+IF(condition,t f)	#如果condition成立，返回t；否则返回f
+IFNELL(value1,value2)	#如果value1不为空，返回value1；否则返回value2
+CASE WHEN [condition] THEN result1 ELSE [default resault] END
+@其他常用函数
+DATABASE()	#返回当前数据库名
+VERSION()	#返回当前数据库版本
+USER()		#返回当前登录用户
+PASSWORD()	#返回字符串str的加密版本
+MD5()		#返回字符串str的MD5值
 
 
 
