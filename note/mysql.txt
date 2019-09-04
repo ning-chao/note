@@ -40,6 +40,7 @@ alter table drop column age;
 alter table tablename change column_name new_column_name new_column_type;
 #将age改为age1，同事修改类型为int(4)
 alter table emp change age age1 int(4);
+#modify 可以列类型	#change可以修改列的类型和列名，modify只能修改列类型不能修改列名称
 #修改字段排列顺序
 #新增表字段bieth date 加在 ename之后
 alter table emp add birth date after ename;
@@ -49,6 +50,8 @@ alter table emp modify age int(3) first;
 alter table tablename rename new_tablename;
 #将emp改名为emp1
 alter table emp rename emp1;
+#修改表字符集
+alter table tablename convert to character set character_name;
 
 DML
 1)插入记录
@@ -154,7 +157,13 @@ USER()		#返回当前登录用户
 PASSWORD()	#返回字符串str的加密版本
 MD5()		#返回字符串str的MD5值
 
-
+---------------------------------
+#查看当前数据库支持的存储引擎
+show engines;
+#修改表的存储引擎
+alter table tablename engine=innodb;	#修改存储引擎为innodb		
+#查看外键信息
+show create table tablename;或者show table status like 'tablename';
 
 
 
