@@ -1,0 +1,101 @@
+1、建设一个网站的基本步骤
+1）申请独立域名
+2）申请一台云服务器ECS，存储和运行网站内容，包括：HTML、图片、PHP
+3）在服务器上安装网站环境
+4）发布网站内容至云服务器
+5）将已注册的域名解析至云服务器的外网IP地址
+6）进行ICP备案，获”得通行证“如京ICP备14057750号-3
+#注册域名
+http://edu.aliyun.com
+http:协议 edu:主机名  aliyun.com:域名
+#开通云服务器
+计费方式：按量或者包年包月
+规格：CPU、内存
+操作系统：Windows、Linux
+存储空间：硬盘
+公网带宽：峰值固定
+管理密码：密码
+#阿里云的云服务器产品-ECS
+实例，instance：由CPU，内存，操作系统，系统盘，数据盘组成
+地域与可用性，region&zone：服务器所在位置
+磁盘，disk：用于存储数据，可以随时扩容
+镜像，image：操作系统模板，一般有Windows、linux两大类
+虚拟专有网络，VPC：公共云上划分给用户的专属区域，保障安全
+安全组，security group：虚拟防火墙，隔离不需要的访问源
+#网站分类
+静态网站：指全部由HTML代码格式页面组成的网站，所有的内容包含在网页文件中
+HTML、CSS、JavaScript脚本语言
+动态网站：除了要设计网页外，还要通过数据库和程序来进行架构的网站
+HTML、CSS、JavaScript脚本语言、服务器端脚本语言、数据库
+#云上搭建WordPress网站关键步骤
+1、传建云服务器ECS：硬件配置，操作系统
+2、安装配置开发环境：WEB服务器，数据库等
+3、部署WordPress网站：下载、安装配置WordPress
+#安装Apache HTTP服务
+yum install -y httpd
+yum install -y httpd-manual mod_ssl mod_perl mod_auth_mysql
+systemctl restart httpd
+chkconfig httpd on / systemctl enable httpd
+#安装mysql
+yum install -y mysql
+systemctl start mysqld
+create database wordpress;
+#安装PHP
+yum install -y php php-mysql
+yum install -y gd php-gd gd-devel php-common php-mbstring  php-ldap php-pear php-xmlrpc php-imap
+service httpd restart
+echo "<?php.phpinfo();?>" > /var/www/html/phpinfo.php
+#安装WordPress并配置mysql
+wget https://cn.wordpress.org/wordpress-5.2.3-zh_CN.tar.gz
+tar -zxvf wordpress-5.2.3-zh_CN.tar.gz
+cd wordpress
+vim wp-config.php	#配置数据库名，数据库登录名和密码
+mkdir /var/www/html/wp-blog
+mv wordpress/* /var/www/html/wp-blog
+
+#安装牛黄插件的必要操作
+define("FS_METHOD","direct");
+define("FS_CHMOD_DIR", 0777);
+define("FS_CHMOD_FILE", 0777);
+
+chmod 777 /var/www/html/wp-blog/wp-content/
+chmod 777 /var/www/html/wp-blog/wp-content/plugins/
+chmod 777 /var/www/html/wp-blog/
+
+#引入CNCC（友盟），可以进行站长统计
+---------------------------------------------------------------
+wordpress连不上数据库问题：
+1、把wp-config.php中的主机localhost改为127.0.0.1
+2、重启httpd服务
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
