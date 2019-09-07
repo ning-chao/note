@@ -1,0 +1,36 @@
+1、DB2补丁升级
+1)备份数据库及系统配置信息
+db2support . -d dbname -c
+#备份数据库DDL语句（表结构）
+db2look -d dbname -e -l -x -o dbname.ddl	#dbname.ddl名字任意
+2）备份数据库
+db2 backup database dbname;	#关闭正在使用数据库的应用
+#查看正在上连接数据库的应用
+db2 list applications
+3)停止实例，服务与应用
+#切换到实例用户，如db2inst
+su - dn2inst
+#断开所有连接
+db2 force applications all;
+#停止实例
+db2 terminate
+db2stop
+#停止License管理进程
+db2licd -end
+#切换到DAS用户
+su - db2admin
+#停止服务
+db2admin stop
+4）安装补丁包
+#root用户执行installFixPack命令
+./installFixPack -b DB2DIR	#DB2DIR是要升级的软件目录
+5）升级实例
+
+
+
+
+
+
+
+
+

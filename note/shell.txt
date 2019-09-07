@@ -1,0 +1,76 @@
+1、利用test命令的测试功能 
+#判断文件存在不，存在输出exist，不存在输出not exist
+test -e /test && echo "exist" || echo "not exist"
+2、利用判断符号[]（中括号）
+#判断$HOME是否为空
+[ -z $HOME ] ; echo $?
+#判断两个字符串是否相等,下面判断变量var是否等于uuu
+[ "${var}" == "uuu"]
+3、脚本默认变量
+$0：代表脚本名
+$#：代表后接参数个数
+$@：代表所有参数
+$*：代表所有参数
+shift：代表拿掉最前面的几个参数，默认一个
+shift 3	#代表拿掉前三个参数
+4、利用if...then
+if [ 条件判断1 ];then
+	条件成立执行的命令
+elif [ 条件判断2 ];then
+	条件成立执行的命令
+else
+	上面条件都不满足执行的命令
+fi
+5、利用case...esac判断
+case $变量名称 in
+ “变量1”)
+	要执行的命令
+	;;
+ “变量2”)
+        要执行的命令
+        ;;
+ *)
+	要执行的命令
+	;;
+esac
+6、利用function功能
+function fname () {
+	程序段
+}
+7、不定循环
+while [ condition ]	#判断条件
+do
+	程序段
+done
+
+util [ condition ]	
+do
+	程序段
+done
+7、固定循环
+for var in con1 con2 ...	#在循环工作时，第一次$var的内容是con1，第二次$var内容是con2
+do
+	程序段
+done
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
