@@ -1,16 +1,33 @@
-1、安装nginx
-#GCC编译器
+1、安装nginx需要的库
+#GCC编译工具和G++编译器
 yum install -y gcc
 yum install -y gcc-c++
-#PCRE库
+#PCRE库（Perl兼容正则表达式），HTTP模块要靠它来解析正则表达式
 yum install -y pcre pcre-devel
-#zlib库
+#zlib库，用于对HTTP包的内容做gzip格式压缩
 yum install -y zlib zlib-devel
-#OpenSSL开发库
+#OpenSSL开发库，想要支持SSL协议传输HTTP，就要用到OpenSSL，另外 MD5、SHA1等也要用到它。
 yum install -y openssl openssl-devel
 2、Linux内核参数优化
 vim /etc/sysctl.conf
 ...
+fs.file-max=999999      #表示一个work进程可以同时打开的最大句柄数，这个参数直接限制最大并发连接数
+net.ipv4.tcp_tw_reuse=1 #设置为1，表示允许将TIME-WAIT状态的socket重新用于新的TCP连接，因为服务器总会有大量TIME-WAIT状态的连接
+net.ipv4.tcp_keepalive_time=600 #表示TCP发送keepalive消息的频度，默认2小时，可以设置较小一些，快速清理无效连接
+net.ipv4.tcp_fin_timeout=30     #表示当服务器主动关闭连接时，socket保持在FIN-MAIT-2状态的最大时间，单位秒
+net.ipv4.tcp_max_tw_bukets=5000 #表示允许TIME_WAIT套接字数量的最大值，超过这个值就会被清除。默认18000，过多的TIME_WAIT套接字会是WEB服务器变慢
+net.ipv4.ip_local_port_range=1024 61000 #tcp、udp连接中本地端口取值范围
+net.ipv4.tcp_rmem=4096 32768 262142     #tcp接收缓存，三个值分别表示最小值 默认值 最大值，单位字节
+net.ipv4.tcp_wmem=4096 32768 262142     #tcp发送缓存，三个值分别表示最小值 默认值 最大值，单位字节
+net.core.netdev_max_backlog=8096        #每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目
+net.core.rmem_default=262144    #内核套接字接收缓存区默认大小
+net.core.wmem_default=262144    #内核套接字发送缓存区默认大小
+net.core.rmem_max=2097152       #内核套接字接收缓存区最大值
+net.core.wmem_max=2097152       #内核套接字发送缓存区最大值
+net.ipv4.tcp_syncookies=1       #当出现SYN等待队列溢出时，启用cookies来处理，可防范少量SYN攻击，默认为0，表示关闭
+net.ipv4.tcp_max_syn.backlog=1024       #tcp三次握手截断接收SYN请求的最大长度
+...
+
 配置完执行sysctl -p，值上述修改生效
 3、下载nginx源码包
 wget http://nginx.org/download/nginx-1.14.2.tar.gz
@@ -19,7 +36,8 @@ tar -zxvf nginx-1.14.2.tar.gz
 cd nginx-1.14.2
 编译安装
 ./configure
-make make install
+make 
+make install
 4、Nginx的命令行控制
 #默认启动方式
 /usr/local/nginx/sbin/nginx	#默认读取/usr/local/nginx/conf/nginx.conf
