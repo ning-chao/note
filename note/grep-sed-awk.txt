@@ -50,45 +50,22 @@ sed -i '$a #this is  test' test.txt	#$代表最后一行
 #取出最近的登陆者即登录IP
 last -n 5 | awk '{print $1 "\t" $3}'
 #awk内置变量
-NF	每一行（$0）拥有的字段总数
-NR	目前awk在处理的是第几行
-FS	设置目前的分隔符，默认空格
+ARGC               命令行参数个数
+ARGV               命令行参数排列
+ENVIRON            支持队列中系统环境变量的使用
+FILENAME           awk浏览的文件名
+FNR                浏览文件的记录数
+FS                 设置输入域分隔符，等价于命令行 -F选项，设置目前的分隔符，默认空格
+NF                 浏览记录的域的个数，每一行（$0）拥有的字段总数
+NR                 已读的记录数，目前awk在处理的是第几行
+OFS                输出域分隔符
+ORS                输出记录分隔符
+RS                 控制记录分隔符
+$0变量是指整条记录。$1表示当前行的第一个域,$2表示当前行的第二个域,......以此类推。
+
 #查看/etc/passwd文件下内容，以冒号隔开，正在处理第几行，每行有多少字段总数
  head -n 5 /etc/passwd  | awk 'BEGIN {FS=":"} {print $1 "\t" NR "\t" NF}'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#搜索/etc/passwd有root关键字的所有行
+awk  '/root/' /etc/passwd 【这种是pattern的使用，匹配了pattern(这里是root)的行才会执行action(没有指定action，默认输出每行的内容)】
 
 
