@@ -1,4 +1,4 @@
-1、下载安装配置
+1、下载安装与配置
 直接yum install -y git或者下载源码编译安装https://github.com/git/git/releases
 安装完成后执行：
 $ git config --global user.name "Your Name"
