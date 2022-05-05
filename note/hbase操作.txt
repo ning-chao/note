@@ -1,0 +1,237 @@
+HBase基本操作
+
+一、HBase shell命令
+1、通用操作
+status：查看HBase状态，如服务器角色及数量
+version：查看HBase版本
+whoami：当前登录用户信息
+table_help：表相关命令帮助
+
+2、DDL操作
+create：创建表
+list：列出HBase所有表
+alter：修改表
+disable：禁用表
+disable_all：通过正则表达式禁用多个指定表
+is_disabled：验证表是否被禁用
+enable：启用表
+enable_all：通过正则表达式启用多个指定表
+is_enable：验证表是否被启用
+describe：查看表信息、描述
+exists：验证表是否存在
+drop：删除表
+drop_all：通过正则表达式删除多个指定表
+
+3、DML操作
+scan：查询表数据
+put：向表中添加数据
+get：获取行或单元格的内容
+append：给某个单元格的值拼接上新的值
+delete：删除表中的单元格值
+delete_all：删除给定行的所有单元格
+count：查询表行数
+get_splits：获取表对用的region个数，及返回分区列表
+truncate：禁用、删除和重建一个指定的表
+truncate_preserver：清空表内数据，但它回保留表所对用的region
+
+4、DCL安全操作
+注：grant、revoke、user_permission三个命令需要两个前提条件：一是带有security的HBase版本；二是配置完成Kerberos安全认证
+list_security_capabilities：用于列出所支持的安全特性
+grant：授权特定的权限，如读、写、执行和管理表给定一个特定的用户
+revoke：撤销用户访问表的权限
+user_permission：列出特定表的所有权限，或者指定用户针对指定表的权限
+
+二、DDL实例操作
+建表
+create '表名', {NAME => '列族名1', '属性名' => 属性值},{NAME => '列族名2', '属性名' => 属性值}
+create 'teacher', {NAME => 'info', COLUMNS => 'num,name'},{NAME => 'other', COLUMNS => 'class'}
+
+插入
+put 'teacher', 'row1', 'info:num','1001'
+put 'teacher', 'row1', 'info:name','jane'
+put 'teacher', 'row1', 'other:class','professor'
+put 'teacher', 'row2', 'info:num','1002'
+put 'teacher', 'row2', 'info:name','linda'
+put 'teacher', 'row2', 'other:class','instructor'
+
+修改表
+#添加单个列族
+alter 'teacher', NAME => 'extesion', COLUMNS => 'major'
+put 'teacher', 'row1', 'extesion:major', 'computer'
+put 'teacher', 'row2', 'extesion:major', 'computer'
+
+#添加多个列族，VERSIONS为手动指定版本号，可不指定
+alter 'teacher', {NAME => 'cf1', VERSIONS=>3}, {NAME => 'cf2',VERSIONS=>4}
+
+#删除多个列族
+alter 'teacher', 'delete' => '列族名'
+alter 'teacher', 'delete' => 'cf1'
+
+#禁用表
+disable '表名'
+disable 'teacher'
+
+#启用表
+enable '表名'
+enable 'teacher'
+
+#禁用多个表
+disable_all '正则表达式'
+#禁用所有以t开头的表
+disable_all 't.*'	
+
+#启用多个表
+enable_all '正则表达式'
+#启用所有以t开头的表
+enable_all 't.*'
+
+#验证表是否被禁用
+is_disabled '表名'
+#验证teacher表是否被禁用
+is_disable 'teacher'
+
+#验证表是否被启用
+is_enabled '表名'
+#验证teacher表是否被启用
+is_enabled 'teacher'
+
+#查看表的描述信息
+describe '表名'
+#查看teacher表信息
+describe 'teacher'
+
+#判断指定表是否存在
+exists '表名'
+#判断teacher表是否存在
+exists 'teacher'
+
+#删除指定表
+drop '表名'
+#删除teacher表，删除表之前要先禁用表
+disable 'teacher' 
+drop 'teacher'
+
+#删除多个表
+drop_all '正则表达式'
+#删除所有以t开头的表，删除表之前需要先禁用所有以t开头的表
+disable_all 't.*'
+drop_all 't.*'
+
+三、DML实例操作
+1、scan
+#查看表数据，scan命令用于查看表数据
+scan '表名'
+#查询teacher表中数据
+scan 'teacher'
+#指定列查询
+scan 'teacher',{COLUMNS=>'info:name'}
+#指定行键范围
+scan 'teacher', {STARTROW=>'row2'}
+
+2、get
+#读取行数据，通过行键获取某行记录
+get '表名', '行键'
+#查询teacher表的行键为row1的单元信息
+get 'teacher','row1'
+
+
+#读取指定列
+get '', '' {COLUMNS => 'columns family:column name'}
+get 'teacher','row1', {COLUMNS => 'other:class'}
+
+get支持的属性
+CLOUMNS 列族
+TIMERANGES 时间戳
+VERSIONS 版本
+FILTER 过滤器
+
+3、put
+#put命令可以新增记录，常用命令格式如：
+put '表名', '行键', '列名', '值'
+#使用put向teacher、extesion、major列下行键row1、row2、row3分别插入IOT值
+put 'teacher', 'row1', 'extesion', 'extesion:major', 'IOT'
+put 'teacher', 'row2', 'extesion', 'extesion:major', 'IOT'
+put 'teacher', 'row3', 'extesion', 'extesion:major', 'IOT'
+
+4、append
+#用于给某个单元格的值拼接上新的值，其命令格式如下：
+append '表名', '行键', '列名', '值'
+#使用append给teacher表的单元格拼接新的值
+append 'teacher', 'row1', 'info:name', 'lily'
+
+5、delete
+#delete命令用于删除某个列的数据
+#简单删除
+delete '表名', '行键', '列名'
+#根据版本删除数据
+delete '表名', '行键', '列名', '时间戳'
+
+6、deleteall
+#deleteall用于删除整行数据，也可以删除单列数据。命令格式如下：
+deleteall '表名', '行键'
+deleteall '表名', '行键', '列名'
+deleteall '表名', '行键', '列名', '时间戳'
+
+7、count
+count用于计算表的行数量
+#简单计算
+count '表名'
+#指定计算步长。通过指定INTERVAL参数来指定步长
+count '表名', 'INTERVAL => 步长'
+count 'teacher', INTERVAL=>2
+#指定缓存。通过指定CACHE参数来加速计算表行数的过程
+count '表名', CACHE => 缓存条数
+count 'teacher', CACHE => 2, INTERVAL => 2
+
+8、get_splits
+get_splits命令用于获取表所对应的region个数。因为一开始只有一个region，由于region逐渐变大，region被拆分（split）为多个，所以这个命令被称为get_splits。格式如下：
+get_splits '表名'
+#获取teacher表对应的region的个数
+get_splits 'teacher'
+
+9、truncate
+truncate命令是禁止删除并重建一个表，即清空表数据，保留表属性。单HBase truncate表的方式其实就是先删除表，再重建表的过程。命令格式如下：
+truncate '表名'
+#通过truncate命令来截断表teacher
+truncate 'teacher'
+
+10、truncate_preserver
+truncate_preserver命令用于清空表内数据，但它回保留表对应的region。其命令格式如下:
+truncate_preserver '表名'
+#清空teacher表
+truncate_preserver 'teacher'
+
+四、安全
+1、list_security_capabilities
+list_security_capabilities命令用于列出所支持的安全特性。其命令格式如下：
+list_security_capabilities
+
+#下面3个命令需要两个前提条件：意识带有security的HBase版本；另一个是配置成Kerberos安全认证
+2、grant
+grant命令授权。其命令格式如下：
+grant '用户', '权限表达式'
+grant '用户', '权限表达式', '表名'
+grant '用户', '权限表达式', '表名', '列族名'
+grant '用户', '权限表达式', '表名', '列族名', '列名'
+
+3、revoke
+revoke命令用于撤销用户访问权限。其命令格式如下：
+revoke '用户', '权限表达式'
+revoke '用户', '权限表达式', '表名'
+revoke '用户', '权限表达式', '表名', '列族名'
+revoke '用户', '权限表达式', '表名', '列族名', '列名'
+
+4、user_permission
+user_permission命令用于列出特定表的所有权限。其命令格式如下：
+user_permission '表名'
+
+
+
+
+
+
+
+
+
+
+

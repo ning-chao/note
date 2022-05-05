@@ -1,95 +1,47 @@
-1、安装nginx需要的库
-#GCC编译工具和G++编译器
-yum install -y gcc
-yum install -y gcc-c++
-#PCRE库（Perl兼容正则表达式），HTTP模块要靠它来解析正则表达式
-yum install -y pcre pcre-devel
-#zlib库，用于对HTTP包的内容做gzip格式压缩
-yum install -y zlib zlib-devel
-#OpenSSL开发库，想要支持SSL协议传输HTTP，就要用到OpenSSL，另外 MD5、SHA1等也要用到它。
-yum install -y openssl openssl-devel
-2、Linux内核参数优化
-vim /etc/sysctl.conf
-...
-fs.file-max=999999      #表示一个work进程可以同时打开的最大句柄数，这个参数直接限制最大并发连接数
-net.ipv4.tcp_tw_reuse=1 #设置为1，表示允许将TIME-WAIT状态的socket重新用于新的TCP连接，因为服务器总会有大量TIME-WAIT状态的连接
-net.ipv4.tcp_keepalive_time=600 #表示TCP发送keepalive消息的频度，默认2小时，可以设置较小一些，快速清理无效连接
-net.ipv4.tcp_fin_timeout=30     #表示当服务器主动关闭连接时，socket保持在FIN-MAIT-2状态的最大时间，单位秒
-net.ipv4.tcp_max_tw_bukets=5000 #表示允许TIME_WAIT套接字数量的最大值，超过这个值就会被清除。默认18000，过多的TIME_WAIT套接字会是WEB服务器变慢
-net.ipv4.ip_local_port_range=1024 61000 #tcp、udp连接中本地端口取值范围
-net.ipv4.tcp_rmem=4096 32768 262142     #tcp接收缓存，三个值分别表示最小值 默认值 最大值，单位字节
-net.ipv4.tcp_wmem=4096 32768 262142     #tcp发送缓存，三个值分别表示最小值 默认值 最大值，单位字节
-net.core.netdev_max_backlog=8096        #每个网络接口接收数据包的速率比内核处理这些包的速率快时，允许送到队列的数据包的最大数目
-net.core.rmem_default=262144    #内核套接字接收缓存区默认大小
-net.core.wmem_default=262144    #内核套接字发送缓存区默认大小
-net.core.rmem_max=2097152       #内核套接字接收缓存区最大值
-net.core.wmem_max=2097152       #内核套接字发送缓存区最大值
-net.ipv4.tcp_syncookies=1       #当出现SYN等待队列溢出时，启用cookies来处理，可防范少量SYN攻击，默认为0，表示关闭
-net.ipv4.tcp_max_syn.backlog=1024       #tcp三次握手截断接收SYN请求的最大长度
-...
+yum安装nginx
+1、编辑yum源文件
+将以下内容粘贴进入/etc/yum.repos.d/nginx.repo文件中：
 
-配置完执行sysctl -p，值上述修改生效
-3、下载nginx源码包
-wget http://nginx.org/download/nginx-1.14.2.tar.gz
-解压
-tar -zxvf nginx-1.14.2.tar.gz
-cd nginx-1.14.2
-编译安装
-./configure
-make 
-make install
-4、Nginx的命令行控制
-#默认启动方式
-/usr/local/nginx/sbin/nginx	#默认读取/usr/local/nginx/conf/nginx.conf
-#另行指定配置文件的启动方式
-/usr/local/nginx/sbin/nginx -c /tmp/nginx.conf	#这时会读取-c参数后指定的nginx.conf配置文件来启动nginx
-#另行指定安装目录的启动方式
-/usr/local/nginx/sbin/nginx -p /usr/local/nginx/	#-p参数指定nginx的安装目录
-#另行指定全局配置项的启动方式
-/usr/local/nginx/sbin/nginx -g "pid /varnginx/test.pid"	#-g参数临时指定一些全局配置项
-#测试配置信息是否有误
-/usr/local/nginx/sbin/nginx -t	#在不启动nginx的情况下测试配置文件是否有误
-#在配置阶段不输出信息
-/usr/local/nginx/sbin/nginx -t -q	#-q参数使error界别以下的信息不输出到屏幕
-#显示版本信息
-/usr/local/nginx/sbin/nginx -v
-#显示编译阶段的参数
-/usr/local/nginx/sbin/nginx -V	#显示gcc版本，操作系统版本，执行的configure参数等
-#快速停止服务
-/usr/local/nginx/sbin/nginx -s stop
-或者：kill -s SIGTERM 进程号
-kill -s SIGINT 进程号
-#优雅停止服务：先关闭监听端口，停止接收新的连接，然后处理完当前连接，最后退出进程
-/usr/local/nginx/sbin/nginx -s quit
-或者kill -s SIGQUIT 进程号
-    kill -s SIGWINCH 进程号
-#使运行中的Nginx重读配置项并生效
-/usr/local/nginx/sbin/nginx -s reload
-或者kill -s SIGHUP 进程号
-#日志文件回滚
-/usr/local/nginx/sbin/nginx -s reopen
-或者kill -s SIGUSER1 进程号
-#平滑升级Nginx
-1）通知旧版本准备升级。kill -s SIGUSER2 进程号
-2）启动新版本的Nginx
-3）以优雅的方式关闭旧版本Nginx
-5、
+[nginx]
+name=nginx repo
+baseurl=http://nginx.org/packages/centos/7/$basearch/
+gpgcheck=0
+enabled=1
+2、安装nginx
+yum install nginx -y
 
+3、命令管理：
+启动
+systemctl start nginx
 
+重启
+systemctl restart nginx
 
+测试配置文件语法是否正确
+nginx -t
 
+重载配置文件
+systemctl reload nginx
 
+停止
+systemctl stop nginx
 
+启动开机启动
+systemctl enable nginx
 
+禁止开机启动
+systemctl diasble nginx
 
+4、更新Nginx
+一般在生产环境，我们都是禁用更新的。所以说，这里只是作为一个参考。
+我们需要执行的命令就是：
 
+yum update nginx
 
+注意： 在使用 yum 更新之后，Nginx会自动重启。
 
+5、禁止更新
+我们在安装之后，为了能够正常运行，我们一般会禁止Nginx进行更新。因为在yum更新了Nginx之后，Nginx会自动重启。这对于我们来说是没有必要的，所以我们可以屏蔽更新。
+将下列指定放到你的/etc/yum.conf文件中：
 
-
-
-
-
-
-
-
+exclude=nginx

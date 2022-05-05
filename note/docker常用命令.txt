@@ -1,0 +1,253 @@
+######安装、测试与卸载######
+1.需要Liunx版本为CentOS7.0以上
+2.卸载旧版本(非必须项)
+yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
+3.安装Docker所需要依赖
+yum install -y yum-utils device-mapper-persistent-data lvm2
+4.设置镜像仓库
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo 	
+5.安装Docker
+yum -y install docker-ce
+6.设置阿里云镜像加速
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://qhyb8ixp.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+7.开启Dcoker服务
+systemctl start docker
+8.测试Docker-HelloWorld程序
+[root@iZ8vbi9mx98t2s78lyxfpuZ ~]# docker run hello-world 
+Unable to find image 'hello-world:latest' locally
+docker run hello-worldlatest: Pulling from library/hello-world
+0e03bdcc26d7: Already exists
+Digest: sha256:6a65f928fb91fcfbc963f7aa6d57c8eeb426ad9a20c7ee045538ef34847f44f1
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!             --> 出现这句话代表Docker安装没有问题
+This message shows that your installation appears to be working correctly.
+9.卸载Docker
+#1. 卸载依赖
+yum remove docker-ce docker-ce-cli containerd.io
+#2. 删除资源 /var/lib/docker 是docker的默认工作路径！
+rm -rf /var/lib/docker
+
+
+######Docker镜像命令######
+
+#拉取镜像
+docker pull ubuntu:18.04
+
+#显示本机上所有安装镜像
+docker images -a
+
+#添加/修改镜像标签
+docker tag ubuntu:latest myubuntu:latest
+
+#查看镜像详细信息
+docker inspect ubuntu:18.04
+
+#查看镜像历史
+docker history ubuntu:18.04
+
+#搜索镜像
+docker search mysql(镜像名)
+docker search mysql -f=STARS=3000 # 列出镜像星数大于3000的镜像
+
+#删除镜像
+docker rmi myubuntu:latest	#使用标签删除镜像
+docker rmi -f 镜像id   # 使用id删除镜像
+docker rmi -f $(docker images -aq)	# 删除全部的镜像
+
+#清理镜像
+docker images prune -f 
+
+#下载镜像
+docker pull mysql      # 下载最新版本的MySQL
+docker pull mysql:5.7  # 下载指定版本的MySQL
+
+#创建镜像
+#1）基于已有容器创建
+docker commit -m "提交说明" -a "提交人" containerId ubuntu:18.04
+#2）基于本地模板导入
+
+#导出镜像
+docker save -o ubuntu_18_04.tar ubuntu:18.04 
+
+#载入镜像
+docker load -i ubuntu_18_04.tar
+或者
+docker load < ubuntu_18_04.tar
+
+#上传镜像
+docker tag test:latest user/test:latest
+docker push user/test:latest	#默认上传到 Docker Hub 官方仓库（需要登录）
+
+#从指定仓库拉取镜像
+docker pull 1029078656/mysql5.7:5.7  
+
+
+######Docker容器命令######
+
+#创建容器
+docker create -it ubuntu:latest
+
+#启动容器
+docker start 容器id
+
+#新建并启动容器
+docker run -it ubuntu:18.04 /bin/bash
+docker run -p 3306:3306 --name mysql -d mysql:5.7
+
+#查看容器日志
+docker logs containerId
+
+#暂停容器
+docker pause containerId
+恢复运行
+docker unpause containerId
+
+#停止容器
+docker stop containerId
+恢复需要重新启动
+docker start containerId
+
+#进入容器
+1）attach命令
+docker run -itd ubuntu
+2）exec命令
+docker exec -it containerId /bin/bash
+
+#删除容器
+dcoker rm containerId
+
+#导出容器
+docker export -o 导出文件名.tar containerId
+
+#导入容器
+docker import 导出文件名.tar - test/ubuntu:vl.O 
+
+#查看容器 
+1）查看容器详情
+docker inspect 容器id或者容器名
+2）查看容器内进程
+docker top 容器id或者容器名
+3）查看统计信息
+docker stats
+
+#列出运行中的容器
+docker ps
+
+#列出所有的容器
+docker ps -a
+
+#将本地文件复制到容器内
+dcoker cp 本地文件 容器id或者容器名:目标容器路径
+
+#查看容器内文件系统的变更
+docker diff 容器id或者容器名
+
+#查看端口映射
+docker port 容器id或者容器名
+
+
+######Docker数据管理######
+
+#指定挂载数据卷命令
+docker run -it -v 主机目录:容器目录 容器名 /bin/bash
+docker run -it -v  /var/lib/docker/volumes/test:/tmp/test nginx /bin/bash
+
+#数据卷容器
+1）创建一个数据卷容器dbdata，并在其中创建一个数据卷挂载到/dbdata
+docker run -it -v /dbdata --name dbdata ubunttu
+2）在其他容器中使用--volumes-from来挂载dbdata容器中的数据卷，例如创建db1和db2两个容器，并从ddata容器挂载数据卷
+docker run -it --volume-from dbdata --name db1 ubuntu
+docker run -it --volume-from dbdata --name db2 ubuntu
+此时，容器 dbl db2 都挂载同一个数据卷到相同的／dbdata 目录，三个容器任何一方在该目录下的写人，其他容器都可以看到
+
+#利用数据卷容器来迁移数据
+1、备份
+docker run --volume-from dbdata -v ${pwd}:/backup --name worker ubuntu tar cvf /backup/backup.tar
+
+2、恢复 
+1）首先创建一个带有数据卷的容器dbdata2
+docker run -v /dbdata --name dbdata2 ubuntu /bin/bash
+2）创建一个新的容器，挂载dbdata2的容器，并使用untar解压备份文件到所挂在的容器卷中
+docker run --volume-from dbdata -v ${pwd}:/backup busybox tar xvf /backup/backup.tar
+
+
+######端口映射与容器互连######
+
+#端口映射实现容器访问
+1）使用大写P标记端口时，Dockker会随机映射一个端口到内部容器开放的网络端口
+docker run -d -P 镜像id或镜像名
+
+2）映射任意指定端口
+docker run -d -p 5000:5000 ubnutu /bin/bash
+
+3）映射到指定主机的指定端口
+docker run -d -p 192.168.37.12:5000:5000 ubnutu /bin/bash
+
+4）映射到指定主机的任意端口
+docker run -d -p 192.168.37.12::5000 ubnutu /bin/bash
+
+5）查看映射端口配置
+docker port 容器id或者容器名 容器端口号
+docker port ubuntu20c 6900  
+
+#容器互连
+1）自定义容器名
+docker run -d -p 5000:5000 --name myubnutu ubnutu:latest /bin/bash
+2）容器互连，使用--link参数可以让容器之间安全地进行交互
+--首先创建一个新的容器
+docker run -d --name db training/postgres
+
+
+
+######其他######
+
+#docker-以root用户进入容器
+docker exec -it --user root container_id /bin/bash
+
+
+docker run -p 3306:3306 --name mymysql -v $PWD/conf:/etc/mysql/conf.d -v $PWD/logs:/logs -v $PWD/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7
+
+#设置容器开机自启
+docker update --restart=always d5380993afb8
+docker update --restart=always d5380993afb8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

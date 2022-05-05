@@ -1,0 +1,116 @@
+postgresql编译安装
+
+1、下载
+https://ftp.postgresql.org/pub/source/v12.0/postgresql-12.0.tar.gz
+
+依赖安装：
+yum -y install readline readline-devel zlib zlib-devel gettext gettext-devel openssl openssl-devel pam pam-devel libxml2 libxml2-devel libxslt libxslt-devel perl perl-devel tcl-devel uuid-devel gcc gcc-c++ make flex bison perl-ExtUtils*
+
+2、解压
+tar -zxvf postgresql-12.0.tar.gz -C /opt
+
+3、配置，编译，安装
+cd /opt/postgresql-12.0
+./configure
+make
+make install
+
+4、设置环境变量
+vim /etc/profile
+
+PGHOME=/opt/postgresql-12.0
+PGDATA=/opt/postgresql-12.0/data
+export PATH=$PATH:$PGHOME/bin
+
+source /etc/profile
+
+#检查环境变量，查看版本
+pg_ctl -V
+
+5、启动
+su - postgres
+pg_ctl -D /opt/postgresql-12.0/data/ -l logfile start
+或者
+pg_ctl start
+
+6、停止
+pg_ctl stop 
+
+7、常用命令
+#进入数据库
+psql
+
+#查看数据库
+\l
+
+#查看表
+\d
+
+
+#########################################
+
+./configure
+make
+su
+make install
+adduser postgres
+mkdir /usr/local/pgsql/data
+chown postgres /usr/local/pgsql/data
+su - postgres
+/usr/local/pgsql/bin/initdb -D /usr/local/pgsql/data
+/usr/local/pgsql/bin/pg_ctl -D /usr/local/pgsql/data -l logfile start
+/usr/local/pgsql/bin/createdb test
+/usr/local/pgsql/bin/psql test
+
+#########################################
+
+------------------------------------------------------------------------------------------
+
+yum安装
+# Install the repository RPM:
+sudo yum install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+# Install PostgreSQL:
+sudo yum install -y postgresql14-server
+
+# Optionally initialize the database and enable automatic start:
+sudo /usr/pgsql-14/bin/postgresql-14-setup initdb
+sudo systemctl enable postgresql-14
+sudo systemctl start postgresql-14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

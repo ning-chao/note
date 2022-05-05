@@ -1,0 +1,42 @@
+MySQL
+
+在master上操作
+1、在my.cnf中添加配置
+log-bin=master-bin
+log-bin-index=master-bin-index
+server-id=1
+
+2、创建一个复制用户
+#创建一个用户
+create user repl_user;
+#授予replication slave权限，可以从master上取得二进制日志的转存数据
+grant replication slave, replication client on *.* to 'repl_user'@'42.192.131.45' identified by 'repl_user';
+#刷新权限
+flush privileges;
+#查看master状态
+show master status;
+show master status \G
+
+#锁主库表
+FLUSH TABLES WITH READ LOCK;
+#解锁
+UNLOCK TABLES;
+
+
+在slave上操作
+1、在my.cnf中添加配置
+relay-log=slave-relay-bin
+relay-log-index=slave-relay-bin.index
+server-id=2
+
+2、将slave指向master
+#在master上执行show master status;即可查看MASTER_LOG_FILE和MASTER_LOG_POS的值
+CHANGE MASTER TO MASTER_HOST='140.246.200.181',MASTER_PORT=3306,MASTER_USER='repl_user',MASTER_PASSWORD='repl_user',MASTER_LOG_FILE='master-bin.000002',MASTER_LOG_POS=566;
+#重新连接
+CHANGE MASTER TO MASTER_LOG_FILE='master-bin.000002',MASTER_LOG_POS=3291;
+#开启slave
+start slave
+#停止slave
+stop slave
+#查看slave状态
+show slave status \G

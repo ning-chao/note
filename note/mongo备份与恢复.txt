@@ -1,0 +1,142 @@
+MongoDB 备份恢复主要有以下两种组合工具：mongodump 和 mongorestore、mongoexport 和 mongoimport
+
+1、mongodump 和 mongorestore
+
+
+
+这两种工具在 MongoDB 4.4 以下随着数据库服务一起安装，不需要单独安装，但从 MongoDB 4.4 版本开始，mongodump 现在与 MongoDB Server 分开发布，并使用自己的版本控制，初始版本为 100.0.0。
+
+mongodump 从 MongoDB 数据库中读取数据并创建 BSON 文件，mongorestore 工具可以使用这些文件来还原 MongoDB 数据库。mongodump 和 mongorestore 是用于备份和恢复小型 MongoDB 的简单而高效的工具，但不适合捕获大型系统的备份。
+
+mongodump 和 mongorestore 针对正在运行的 mongod 进程运行，并且可以直接操作底层数据文件。默认情况下，mongodump 不捕获 local 本地数据库的内容。mongodump 仅捕获数据库中的文档。生成的备份是节省空间的，但 mongorestore 或 mongod 必须在还原数据后重新生成索引，故不会备份索引。
+
+当连接到 MongoDB 实例时，mongodump 可能会对 mongod 性能产生负面影响。如果数据大于系统内存，则查询会将工作集从内存中推出，从而导致页面错误。应用程序可以继续修改数据，而 mongodump 会捕获输出。对于副本集，mongodump 提供了 --oplog 选项，以在其输出 oplog 条目中包含 mongodump 操作期间发生的条目。这允许相应的 mongorestore 操作重播捕获的 oplog。要恢复使用 --oplog 创建的备份，请将 mongorestore 与 --oplogReplay 选项结合使用。
+
+导出示例
+
+全库备份
+mkdir /mongodb/backup
+mongodump  -uroot -proot123 --port 27017 --authenticationDatabase admin -o /mongodb/backup
+备份world库
+mongodump   -uroot -proot123 --port 27017 --authenticationDatabase admin -d world -o /mongodb/backup/
+备份oldboy库下的log集合
+mongodump   -uroot -proot123 --port 27017 --authenticationDatabase admin -d oldboy -c log -o /mongodb/backup/
+压缩备份
+mongodump   -uroot -proot123 --port 27017 --authenticationDatabase admin -d oldguo -o /mongodb/backup/ --gzip
+mongodump   -uroot -proot123 --port 27017 --authenticationDatabase admin -o /mongodb/backup/ --gzip
+mongodump   -uroot -proot123 --port 27017 --authenticationDatabase admin -d app -c vast -o /mongodb/backup/ --gzip
+
+复制集全库压缩备份
+mongodump --host jiektRS/192.168.75.30:37017,192.168.75.31:37017,192.168.75.32:37017  -uroot -p 'rootroot'  --authenticationDatabase admin -o /home/mongo/dmp --gzip
+
+
+恢复示例
+恢复world库
+mongorestore   -uroot -proot123 --port 27017 --authenticationDatabase admin -d world1  /mongodb/backup/world
+恢复oldguo库下的t1集合
+[mongod@db03 oldboy]$ mongorestore   -uroot -proot123 --port 27017 --authenticationDatabase admin -d world -c t1  --gzip  /mongodb/backup.bak/oldboy/log1.bson.gz 
+drop表示恢复的时候把之前的集合drop掉(危险)
+mongorestore  -uroot -proot123 --port 27017 --authenticationDatabase admin -d oldboy --drop  /mongodb/backup/oldboy
+
+副本集备份恢复集合
+mongodump   --host jiekeRS/192.168.75.30:37017,192.168.75.31:37017,192.168.75.32:37017 -uroot -p'rootroot' --authenticationDatabase admin -d jieke-biz-credit -c CreditDocDatumDirectTemp -o /home/mongo/mongodump
+mongorestore   --host jiekeRS/192.168.75.89:37017,192.168.75.89:37017,192.168.75.89:37017 -uroot -p'rootroot' --authenticationDatabase admin -d jieke_mps_certificate -c CreditDocDatumDirectTemp    /home/mongo/dmp/jieke-biz-credit/CreditDocDatumDirectTemp.bson
+
+注意：默认情况下 mongodump 不获取 local 数据库里面的内容
+mongodump 仅备份数据库中的文档，不备份索引，所以我们还原后，需要重新生成索引。
+--oplog   # mongodump 会将 mongodump 执行期间的 oplog 日志 输出到文件 oplog.bson，这就意味着从备份开始到备份结束的数据操作我们都可以记录下来。
+
+
+2、mongoexport 和 mongoimport
+mongoexport 是一个命令行工具，可对存储在MongoDB实例中的数据进行JSON或CSV导出。
+mongoexport 示例
+
+--连接到副本集
+要连接到副本集以导出其数据，您可以：
+指定副本集名称和成员：--uri connection string
+mongoexport --uri="mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/reporting?replicaSet=myReplicaSetName" --collection=events --out=events.json [additional options]
+如果使用，则将数据库指定为字符串的一部分。您不能将命令行选项与一起使用。
+--uri connection string--db--uri connection string
+
+在导出中指定副本集名称和成员--host：
+mongoexport --host="myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com" --collection=events --db=reporting --out=events.json [additional options]
+默认情况下，mongoexport从副本集的主数据库读取。要覆盖默认值，可以指定读取首选项：
+
+您可以在 --uri connection string
+
+mongoexport --uri="mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/reporting?replicaSet=myReplicaSetName&readPreference=secondary" --collection=events --out=events.json [additional options]
+如果指定读取的首选项标签，请包括以下 readPreferenceTags选项：
+
+mongoexport --uri="mongodb://mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017/reporting?replicaSet=myReplicaSetName&readPreference=secondary&readPreferenceTags=region:east" --collection=events --out=events.json [additional options]
+如果使用，则将数据库指定为字符串的一部分。您不能将命令行选项与一起使用。--uri connection string--db--uri connection string
+
+您可以使用--readPreference命令行选项指定读取首选项。如果仅指定读取首选项模式，则命令行选项采用字符串：
+
+mongoexport --host="myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference=secondary --collection=events --db=reporting --out=events.json [additional options]
+或者，命令行选项可以使用带引号的文档 来指定模式，可选的读取首选项标签集和可选的 maxStalenessSeconds：'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds:<num>}'
+
+mongoexport --host="myReplicaSetName/mongodb0.example.com:27017,mongodb1.example.com:27017,mongodb2.example.com:27017" --readPreference='{mode: "secondary", tagSets: [ { "region": "east" } ]}' --collection=events --db=reporting --out=events.json [additional options]
+有关可用选项的更多信息，请参阅选项。
+
+连接到分片集群
+要连接到分片群集以导出其数据，您可以：
+
+在中指定mongos实例 的主机名--uri connection string
+
+mongoexport --uri="mongodb://mongos0.example.com:27017/reporting" --collection=events --out=events.json [additional options]
+如果使用，则将数据库指定为字符串的一部分。您不能将命令行选项与一起使用。--uri connection string--db--uri connection string
+
+在中指定mongos实例的主机名和端口--host
+
+mongoexport --host="mongos0.example.com:27017" --collection=events --db=reporting --out=events.json[additional options]
+默认情况下，mongoexport从分片副本集的主数据库读取。要覆盖默认值，可以指定读取首选项：
+
+您可以在 --uri connection string
+
+mongoexport --uri="mongodb://mongos0.example.com:27017/reporting?readPreference=secondary" --collection=events --out=events.json [additional options]
+如果指定读取的首选项标签，请包括以下 readPreferenceTags选项：
+
+mongoexport --uri="mongodb://mongos0.example.com:27017/reporting?readPreference=secondary&readPreferenceTags=region:east" --collection=events --out=events.json [additional options]
+如果使用，则将数据库指定为字符串的一部分。您不能将命令行选项与一起使用。--uri connection string--db--uri connection string
+您可以使用--readPreference命令行选项指定读取首 选项。如果仅指定读取首选项模式，则命令行选项采用字符串：
+
+mongoexport --host="mongos0.example.com:27017" --readPreference=secondary --collection=events --db=reporting --out=events.json [additional options]
+或者，命令行选项可以使用带引号的文档 来指定模式，可选的读取首选项标签集和可选的 maxStalenessSeconds：'{ mode: <mode>, tagSets: [ <tag1>, ... ], maxStalenessSeconds:<num>}'
+mongoexport --host="mongos0.example.com:27017" --readPreference='{mode: "secondary", tagSets: [ { "region": "east" } ]}' --collection=events --db=reporting --out=events.json [additional options]
+
+
+
+
+副本集示例
+mongoexport --host jiekeRS/192.168.75.76:37017,192.168.75.77:37017,192.168.75.78:37017 -u root -prootroot --authenticationDatabase admin -d jiekexu-message -c XMessageSms --type csv -q '' -f "_id,fkPublishMessageTaskData,fkTemplate,mobile,renderedContent,sendTime,templateId,ipSender" --out XMessageSms.csv
+mongoexport --host jiekeRS/192.168.75.76:37017,192.168.75.77:37017,192.168.75.78:37017 -u root -prootroot --authenticationDatabase admin -d jiekexu-message -c XMessageTemplateSms --type csv -q '' -f "_id,contentTemplate,templateId,renderedContent,sendChannel" --out XMessageTemplateSms.csv
+
+mongoexport --host jiekeRS/192.168.75.76:37017,192.168.75.77:37017,192.168.75.78:37017 -u root -prootroot --authenticationDatabase admin -d jiekexu-message -c XMessageSys --type csv -q '' -f "_id,fkPublishMessageTaskData,fkTemplate,renderedContent,sendTime" --out XMessageSys.csv
+mongoexport --host jiekeRS/192.168.75.76:37017,192.168.75.77:37017,192.168.75.78:37017 -u root -prootroot --authenticationDatabase admin -d jiekexu-message -c XMessageTemplateSys --type csv -q '' -f "_id,contentTemplate,titleTemplate,renderedContent" --out XMessageTemplateSys.csv
+
+
+
+
+mongoimport
+Mongodb 中的 mongoimport 工具可以把一个特定格式文件中的内容导入到指定的 collection 中。该工具可以导入 JSON 格式数据，也可以导入 CSV 格式数据。
+
+mongoimport 导入示例
+
+三节点副本集导入示例
+mongoimport --host jiekeRS/192.168.75.30:37017,192.168.75.31:37017,192.168.75.32:37017 -uroot -p 'rootroot' --authenticationDatabase admin -d jiekexu -c XMessageSms --type csv --fields "_id,fkPublishMessageTaskData,fkTemplate,mobile,renderedContent,sendTime,templateId,ipSender" --file ./XMessageSms.csv
+mongoimport --host jiekeRS/192.168.75.30:37017,192.168.75.31:37017,192.168.75.32:37017 -uroot -p 'rootroot' --authenticationDatabase admin -d jiekexu -c XMessageTemplateSms --type csv --fields "_id,contentTemplate,templateId,renderedContent,sendChannel" --file ./XMessageTemplateSms.csv
+
+mongoimport --host jiekeRS/192.168.75.30:37017,192.168.75.31:37017,192.168.75.32:37017 -uroot -p 'rootroot' --authenticationDatabase admin -d jiekexu -c XMessageSys --type csv --fields "_id,fkPublishMessageTaskData,fkTemplate,renderedContent,sendTime" --file ./XMessageSys.csv
+mongoimport --host jiekeRS/192.168.75.30:37017,192.168.75.31:37017,192.168.75.32:37017 -uroot -p 'rootroot' --authenticationDatabase admin -d jiekexu -c XMessageTemplateSys  --type csv --fields  "_id,contentTemplate,titleTemplate,renderedContent" --file ./XMessageTemplateSys.csv
+
+
+
+
+
+
+
+
+
+
+
+

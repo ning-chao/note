@@ -1,0 +1,30 @@
+#####迁移zookeeper服务#####
+
+####步骤####
+1、在 Ambari Web > Service Actions 中，停止 ZooKeeper 服务器。
+
+2、在 Ambari Web >主机"中，单击要在其上安装新 ZooKeeper 服务器的主机。
+
+3、在新 ZooKeeper 主机的"摘要"页上，单击"添加> ZooKeeper 服务器"
+
+4、更新新 ZooKeeper 服务器上的以下属性（使用现有的 ZooKeeper 服务器设置作为参考）。
+
+ha.zookeeper.quorum
+
+hbase.zookeeper.quorum
+
+templeton.zookeeper.hosts
+
+yarn.resourcemanager.zk-address
+
+hive.zookeeper.quorum
+
+hive.cluster.delegation.token.store.zookeeper.connectString
+
+5、在 Ambari Web >主机"中，单击原始的 ZooKeeper 服务器主机。
+
+6、在 ZooKeeper >服务操作>删除服务"以删除原始 ZooKeeper 服务器。
+
+7、保存 HDFS 命名空间。
+
+8、重新启动新的 ZooKeeper 服务器和 Hive 服务。

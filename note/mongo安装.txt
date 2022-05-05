@@ -1,0 +1,44 @@
+1、下载
+wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-3.6.23.tgz
+
+2、安装
+
+1）解压
+ tar -zxvf mongodb-linux-x86_64-rhel70-3.6.23.tgz 
+ 
+ mv mongodb-linux-x86_64-rhel70-3.6.23 mongodb-3.6.23
+
+2）配置环境变量
+ vi /etc/profile
+ #在最后面追加
+ export MONGO_HOME=/opt/mongodb-3.6.23
+ export PATH=$JAVA_HOME/bin:$PATH:$MONGO_HOME/bin
+ 
+ source /etc/profile
+
+3）初始化
+ mkdir -p /var/lib/mongo
+ mkdir -p /var/log/mongodb
+ chown `whoami` /var/lib/mongo  
+ chown `whoami` /var/log/mongodb
+ mongod --dbpath /var/lib/mongo --logpath /var/log/mongodb/mongod.log --fork
+ 
+4）启动
+ bin/mongo
+ 
+5)创建用户
+use admin;
+
+db.createUser(  
+     {  
+       user:"mongo",  
+       pwd:"Mongo123",  
+       roles:[{role:"root",db:"admin"}]
+     }  
+  );
+ 
+show users; 
+
+exit
+ 
+ 

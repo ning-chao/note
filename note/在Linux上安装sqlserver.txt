@@ -1,0 +1,128 @@
+官方参考地址：https://docs.microsoft.com/zh-cn/sql/linux/quickstart-install-connect-red-hat?view=sql-server-2017&preserve-view=true
+
+#######安装 SQL Server#######
+
+若要在 RHEL 上配置 SQL Server，请在终端中运行以下命令以安装 mssql-server 包：
+1、下载 Microsoft SQL Server 2017 Red Hat 存储库配置文件：
+
+对于 RHEL7：
+sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/7/mssql-server-2017.repo
+对于 RHEL8：
+sudo curl -o /etc/yum.repos.d/mssql-server.repo https://packages.microsoft.com/config/rhel/8/mssql-server-2017.repo
+
+2、运行以下命令以安装 SQL Server：
+sudo yum install -y mssql-server
+
+3、包安装完成后，运行 mssql-conf setup，按照提示设置 SA 密码并选择版本。
+sudo /opt/mssql/bin/mssql-conf setup
+
+4、完成配置后，验证服务是否正在运行：
+systemctl status mssql-server
+
+5、若要允许远程连接，请在 RHEL 的防火墙上打开 SQL Server 端口。 默认的 SQL Server 端口为 TCP 1433。 如果为防火墙使用的是 FirewallD，则可以使用以下命令：
+sudo firewall-cmd --zone=public --add-port=1433/tcp --permanent
+sudo firewall-cmd --reload
+此时，SQL Server 正在 RHEL 计算机上运行，随时可以使用！
+
+安装 SQL Server 命令行工具
+1、下载 Microsoft Red Hat 存储库配置文件。
+
+对于 RHEL7：
+sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/rhel/7/prod.repo
+对于 RHEL8：
+sudo curl -o /etc/yum.repos.d/msprod.repo https://packages.microsoft.com/config/rhel/8/prod.repo
+
+2、如果安装了早期版本的 mssql-tools，请删除所有旧的 unixODBC 包。
+sudo yum remove unixODBC-utf16 unixODBC-utf16-devel
+
+3、运行以下命令，以使用 unixODBC 开发人员包安装 mssql-tools。 有关详细信息，请参阅安装 Microsoft ODBC Driver for SQL Server (Linux)。
+sudo yum install -y mssql-tools unixODBC-devel
+
+4、为方便起见，请 /opt/mssql-tools/bin/ 添加到 /opt/mssql-tools/bin/ 环境变量。 这样可以在不指定完整路径的情况下运行这些工具。 运行以下命令以修改登录会话和交互式/非登录会话的路径 ：
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+source ~/.bashrc
+
+本地连接
+1、以下步骤使用 sqlcmd 本地连接到新的 SQL Server 实例。
+使用 SQL Server 名称 (-S)，用户名 (-U) 和密码 (-P) 的参数运行 sqlcmd 。 在本教程中，用户进行本地连接，因此服务器名称为 localhost。 用户名为 SA，密码是在安装过程中为 SA 帐户提供的密码。
+
+sqlcmd -S localhost -U SA -P '<YourPassword>'
+
+提示：可以在命令行上省略密码，以收到密码输入提示。
+
+提示：如果以后决定进行远程连接，请指定 -S 参数的计算机名称或 IP 地址，并确保防火墙上的端口 1433 已打开。
+
+2、如果成功，应会显示 sqlcmd 命令提示符：。
+
+3、如果连接失败，先尝试诊断错误消息中所述的问题。 然后查看连接故障排除建议。
+
+
+
+
+#######使用 Docker 运行 SQL Server 容器映像#######
+拉取并运行 2017 容器映像
+1、从 Microsoft 容器注册表中拉取 SQL Server 2017 Linux 容器映像。
+sudo docker pull mcr.microsoft.com/mssql/server:2017-latest
+
+2、要使用 Docker 运行容器映像，可以从 Bash Shell (Linux/macOS) 或提升的 PowerShell 命令提示符使用以下命令。
+sudo docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=<YourStrong@Passw0rd>" \
+   -p 1433:1433 --name sql1 --hostname sql1 \
+   -d \
+   mcr.microsoft.com/mssql/server:2017-latest
+   
+3、要查看 Docker 容器，请使用 docker ps 命令。
+sudo docker ps -a
+
+4、如果“状态”列显示“正常运行”，则 SQL Server 将在容器中运行，并侦听“端口”列中指定的端口 。 
+如果 SQL Server 容器的“状态”列显示“已退出”，则参阅配置指南的疑难解答部分 。 一旦 SQL Server 错误日志显示以下消息，
+它就可以进行连接：SQL Server is now ready for client connections. This is an informational message; no user action is required。 
+可以使用以下命令查看容器内的 SQL Server 错误日志：
+
+docker exec -t sqlrhel cat /var/opt/mssql/log/errorlog | grep connection
+如上所述的 --hostname 参数将容器的内部名称更改为自定义值。 也就是以下 Transact-SQL 查询中返回的名称：
+SELECT @@SERVERNAME,
+    SERVERPROPERTY('ComputerNamePhysicalNetBIOS'),
+    SERVERPROPERTY('MachineName'),
+    SERVERPROPERTY('ServerName')
+5、最后一步，更改 SA 密码，因为 SA_PASSWORD 在 ps -eax 输出中可见，并存储在同名的环境变量中。 请参阅以下步骤
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

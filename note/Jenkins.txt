@@ -1,0 +1,47 @@
+jenkins安装
+1、docker安装
+docker run \
+  -u root \
+  --rm \
+  -d \
+  -p 8080:8080 \
+  -p 50000:50000 \
+  -v jenkins-data:/var/jenkins_home \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkinsci/blueocean
+  
+2、访问docker容器
+docker exec -it jenkins-blueocean bash
+
+3、通过Docker日志访问Jenkins控制台日志
+docker logs <docker-container-name>
+docker logs jenkins-blueocean
+
+4、访问Jenkins主目录
+docker exec -it <docker-container-name> bash
+docker exec -it jenkins-blueocean bash
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
