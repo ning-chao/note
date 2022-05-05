@@ -1,0 +1,94 @@
+#####迁移ambari-server#####
+
+####步骤####
+一、备份当前数据--原始数据库
+二、更新所有agents--将agent指向新的ambari-server
+三、安装新的ambari-server--并使用导入原数据库信息
+
+###备份当前数据###
+1、在 Ambari 服务器主机上，停止原始的 Ambari 服务器
+ambari-server stop
+
+2、创建一个目录来保存数据库备份
+cd /tmp
+mkdir dbdumps/
+cd dbdumps/
+
+3、创建数据库备份（以pgsql为例）
+pg_dump -U {ambari.db.username} -f ambari.sql
+Password: {ambari.db.password}
+
+ambari.db.username	#数据库用户名，默认用户名ambari
+ambari.db.password	#数据库密码，默认bigdata
+
+4、创建ambari服务器元信息的备份
+ambari-server backup
+
+
+###更新所有agents###
+1、在每个代理主机上，停止代理。
+ambari-agent stop
+
+2、删除旧的代理证书（如果存在）。
+rm /var/lib/ambari-agent/keys/* 
+
+3、修改配置文件，进行编辑以指向新主机。/etc/ambari-agent/conf/ambari-agent.ini
+[server]
+hostname={new.ambari.server.fqdn}
+url_port=8440
+secured_url_port=8441
+
+###安装新的ambari-server###
+1、在新主机上安装新的ambari服务器。
+yum install ambari-server
+
+2、运行ambari服务器的设置，并按照类似于原始ambari服务器的配置方式进行设置。
+ambari-server setup 
+
+3、重新启动 PostgreSQL 实例。
+service postgresql restart 
+
+4、打开 PostgreSQL 交互式终端。
+su - postgres
+psql
+
+5、使用交互式终端，删除由新 ambari 安装程序创建的"ambari"数据库并进行安装。
+drop database ambari;
+
+6、检查以确保数据库已被删除。不应列出"ambari"数据库。
+\l
+
+7、创建新的"ambari"数据库来保存传输的数据。
+create database ambari;
+
+8、退出 PostgreSQL 交互式终端。
+\q
+
+9、将保存的数据 （/tmp/dbdumps/ambari.sql） 从"备份当前数据"复制到新的 Ambari 服务器主机。
+
+10、将保存的数据加载到新数据库中。
+psql -d ambari -f /tmp/dbdumps/ambari.sql 
+
+11、启动新服务器。
+ambari-server start
+
+12、在每个代理主机上，启动 Ambari 代理。
+ambari-agent start
+
+13、打开ambari网站。将浏览器指向：
+<new.Ambari.Server>:8080
+
+新的ambari服务器至此已安装完毕
+
+
+
+
+
+
+
+
+
+
+
+
+
